@@ -1,0 +1,75 @@
+/* General page styling */
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #f0f8ff;
+    margin: 0;
+    padding: 0;
+}
+
+/* Game title */
+h1 {
+    color: #1e90ff;
+    margin-top: 20px;
+}
+
+/* Aura display */
+#auraCount {
+    font-weight: bold;
+    font-size: 24px;
+}
+
+/* Clickable aura button */
+#auraButton {
+    width: 200px;
+    height: 200px;
+    font-size: 24px;
+    margin: 20px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #00f, #0ff);
+    color: white;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0px 0px 20px #00f;
+    transition: transform 0.1s, box-shadow 0.1s;
+}
+
+#auraButton:active {
+    transform: scale(0.95);
+    box-shadow: 0px 0px 30px #00ffff;
+}
+
+/* Upgrades container */
+.upgrade {
+    margin: 10px;
+    padding: 15px 20px;
+    border: 2px solid #00bcd4;
+    border-radius: 10px;
+    display: inline-block;
+    background-color: #e0f7fa;
+    cursor: pointer;
+    transition: transform 0.1s, background-color 0.2s;
+}
+
+.upgrade:hover {
+    transform: scale(1.05);
+    background-color: #b2ebf2;
+}
+
+/* Headings */
+h2 {
+    color: #00796b;
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 500px) {
+    #auraButton {
+        width: 150px;
+        height: 150px;
+        font-size: 18px;
+    }
+    .upgrade {
+        padding: 10px 15px;
+        font-size: 14px;
+    }
+}
