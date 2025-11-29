@@ -1,108 +1,231 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aura Clicker Game</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            background-color: #f0f8ff;
-        }
-        #auraButton {
-            width: 200px;
-            height: 200px;
-            font-size: 24px;
-            margin: 20px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #00f, #0ff);
-            color: white;
-            border: none;
-            cursor: pointer;
-            box-shadow: 0px 0px 20px #00f;
-        }
-        .upgrade {
-            margin: 10px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            display: inline-block;
-            background-color: #e0f7fa;
-            cursor: pointer;
-        }
-    </style>
+<meta charset="UTF-8">
+<title>Aura Clicker</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: linear-gradient(#050915, #152036);
+        color: #fff;
+        text-align: center;
+        padding: 20px;
+        overflow-x: hidden;
+    }
+
+    h1 {
+        animation: glow 2.5s infinite alternate;
+    }
+
+    @keyframes glow {
+        from { text-shadow: 0 0 8px #69f3ff; }
+        to   { text-shadow: 0 0 15px #9ffcff; }
+    }
+
+    #auraImage {
+        width: 360px;
+        cursor: pointer;
+        border-radius: 10px;
+        box-shadow: 0 0 25px #6ff7ff;
+        transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    #auraImage:active {
+        transform: scale(0.93);
+        box-shadow: 0 0 40px #aaffff;
+    }
+
+    #store {
+        width: 360px;
+        margin: 20px auto;
+        background: rgba(255,255,255,0.08);
+        padding: 15px;
+        border-radius: 10px;
+        text-align: left;
+    }
+
+    .upgrade {
+        background: rgba(255,255,255,0.12);
+        padding: 8px;
+        border-radius: 6px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .upgrade:hover {
+        background: rgba(255,255,255,0.22);
+    }
+
+    .floatingText {
+        position: absolute;
+        color: #9ffcff;
+        font-size: 20px;
+        animation: floatUp 1s ease-out forwards;
+        pointer-events: none;
+    }
+
+    @keyframes floatUp {
+        0% { opacity: 1; transform: translateY(0); }
+        100% { opacity: 0; transform: translateY(-40px); }
+    }
+
+    .particle {
+        position: absolute;
+        width: 6px;
+        height: 6px;
+        background: #a6f7ff;
+        border-radius: 50%;
+        opacity: 0.9;
+        animation: particleMove 0.7s ease-out forwards;
+        pointer-events: none;
+    }
+
+    @keyframes particleMove {
+        0% { transform: translate(0, 0) scale(1); opacity: 0.9; }
+        100% { transform: translate(var(--dx), var(--dy)) scale(0.2); opacity: 0; }
+    }
+</style>
 </head>
 <body>
 
-    <h1>Aura Clicker</h1>
-    <p>Auras: <span id="auraCount">0</span></p>
-    <button id="auraButton">Click Aura</button>
+<h1>✨ Aura Clicker ✨</h1>
+<h2>Aura: <span id="auraCount">0</span></h2>
 
-    <h2>Upgrades</h2>
-    <div class="upgrade" id="clickUpgrade">
-        Increase Click Value<br>
-        Cost: <span id="clickUpgradeCost">10</span> Auras
-    </div>
-    <div class="upgrade" id="autoClicker">
-        Auto Clicker<br>
-        Cost: <span id="autoClickerCost">50</span> Auras
-    </div>
+<!-- Click Sound -->
+<audio id="clickSound" src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_bfbea995d7.mp3?filename=click-124467.mp3"></audio>
 
-    <script>
-        // Game variables
-        let auras = 0;
-        let clickValue = 1;
-        let autoClickers = 0;
+<!-- Upgrade Purchase Sound -->
+<audio id="buySound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_5946ee93e1.mp3?filename=correct-2-46134.mp3"></audio>
 
-        let clickUpgradeCost = 10;
-        let autoClickerCost = 50;
+<!-- Aurora Image -->
+<img id="auraImage"
+     src="https://upload.wikimedia.org/wikipedia/commons/5/5c/NOAA_-_Northern_Lights.jpg"
+     alt="Aurora Borealis">
 
-        // HTML elements
-        const auraCountEl = document.getElementById("auraCount");
-        const auraButton = document.getElementById("auraButton");
-        const clickUpgradeEl = document.getElementById("clickUpgrade");
-        const autoClickerEl = document.getElementById("autoClicker");
-        const clickUpgradeCostEl = document.getElementById("clickUpgradeCost");
-        const autoClickerCostEl = document.getElementById("autoClickerCost");
+<h2>Upgrades</h2>
+<div id="store"></div>
 
-        // Click aura button
-        auraButton.addEventListener("click", () => {
-            auras += clickValue;
-            updateDisplay();
-        });
+<script>
+let aura = 0;
+let auraPerClick = 1;
+let auraPerSecond = 0;
 
-        // Upgrade click value
-        clickUpgradeEl.addEventListener("click", () => {
-            if (auras >= clickUpgradeCost) {
-                auras -= clickUpgradeCost;
-                clickValue += 1; // Increase click by 1
-                clickUpgradeCost = Math.floor(clickUpgradeCost * 1.5); // Increase cost
-                clickUpgradeCostEl.textContent = clickUpgradeCost;
-                updateDisplay();
-            }
-        });
+const clickSound = document.getElementById("clickSound");
+const buySound = document.getElementById("buySound");
 
-        // Buy auto clicker
-        autoClickerEl.addEventListener("click", () => {
-            if (auras >= autoClickerCost) {
-                auras -= autoClickerCost;
-                autoClickers += 1;
-                autoClickerCost = Math.floor(autoClickerCost * 1.5);
-                autoClickerCostEl.textContent = autoClickerCost;
-                updateDisplay();
-            }
-        });
+const auraImage = document.getElementById("auraImage");
 
-        // Auto clicker interval
-        setInterval(() => {
-            auras += autoClickers * clickValue;
-            updateDisplay();
-        }, 1000);
+auraImage.onclick = (e) => {
+    aura += auraPerClick;
+    updateAura();
 
-        // Update the display
-        function updateDisplay() {
-            auraCountEl.textContent = auras;
-        }
-    </script>
+    clickSound.currentTime = 0;
+    clickSound.play();
+
+    spawnFloatingText(e.pageX, e.pageY);
+    spawnParticles(e.pageX, e.pageY);
+};
+
+// Floating +aura animation
+function spawnFloatingText(x, y) {
+    const text = document.createElement("div");
+    text.className = "floatingText";
+    text.style.left = (x - 10) + "px";
+    text.style.top = (y - 20) + "px";
+    text.innerText = "+" + auraPerClick;
+
+    document.body.appendChild(text);
+    setTimeout(() => text.remove(), 1000);
+}
+
+// Particle burst
+function spawnParticles(x, y) {
+    for (let i = 0; i < 12; i++) {
+        const particle = document.createElement("div");
+        particle.className = "particle";
+
+        const angle = Math.random() * Math.PI * 2;
+        const distance = 40 + Math.random() * 40;
+
+        particle.style.left = x + "px";
+        particle.style.top = y + "px";
+
+        particle.style.setProperty('--dx', Math.cos(angle) * distance + "px");
+        particle.style.setProperty('--dy', Math.sin(angle) * distance + "px");
+
+        document.body.appendChild(particle);
+        setTimeout(() => particle.remove(), 700);
+    }
+}
+
+function updateAura() {
+    document.getElementById("auraCount").innerText = Math.floor(aura);
+}
+
+// 20 Upgrades (same as before)
+const upgrades = [
+    {name: "Spark Boost",        cost: 20,   click: 1},
+    {name: "Gleam Touch",        cost: 50,   click: 2},
+    {name: "Radiant Surge",      cost: 120,  click: 4},
+    {name: "Aurora Infusion",    cost: 300,  click: 7},
+    {name: "Ethereal Tap",       cost: 600,  click: 10},
+    {name: "Celestial Reach",    cost: 1200, click: 15},
+    {name: "Lunar Blessing",     cost: 2500, click: 25},
+    {name: "Solar Harmony",      cost: 5000, click: 40},
+    {name: "Nebula Focus",       cost: 9000, click: 60},
+    {name: "Starlight Pulse",    cost: 15000,click: 90},
+    {name: "Calm Breeze",        cost: 2000, passive: 1},
+    {name: "Sky Glow",           cost: 4500, passive: 3},
+    {name: "Northern Drift",     cost: 9000, passive: 5},
+    {name: "Arctic Flow",        cost: 15000, passive: 8},
+    {name: "Polar Radiance",     cost: 30000, passive: 12},
+    {name: "Dreamy Horizon",     cost: 60000, passive: 20},
+    {name: "Twilight Hum",       cost: 120000, passive: 35},
+    {name: "Cosmic Whisper",     cost: 250000, passive: 50},
+    {name: "Eclipse Spirit",     cost: 450000, passive: 75},
+    {name: "Astral Heart",       cost: 700000, passive: 120}
+];
+
+const storeDiv = document.getElementById("store");
+
+upgrades.forEach((upg, i) => {
+    const div = document.createElement("div");
+    div.className = "upgrade";
+    div.id = "upgrade" + i;
+
+    div.innerHTML = `<strong>${upg.name}</strong><br>
+                     Cost: ${upg.cost} aura<br>
+                     ${upg.click ? "+" + upg.click + " per click" : ""}
+                     ${upg.passive ? "+" + upg.passive + " per second" : ""}`;
+
+    div.onclick = () => buyUpgrade(i);
+    storeDiv.appendChild(div);
+});
+
+function buyUpgrade(i) {
+    const upg = upgrades[i];
+    if (aura >= upg.cost) {
+        aura -= upg.cost;
+
+        if (upg.click) auraPerClick += upg.click;
+        if (upg.passive) auraPerSecond += upg.passive;
+
+        updateAura();
+
+        buySound.currentTime = 0;
+        buySound.play();
+
+        document.getElementById("upgrade" + i).remove();
+    }
+}
+
+// Passive aura income
+setInterval(() => {
+    aura += auraPerSecond;
+    updateAura();
+}, 1000);
+</script>
+
 </body>
 </html>
